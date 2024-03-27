@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     shared_memory_object::remove("Boost");
   }
 
-  managed_shared_memory managed_shm{open_or_create, "Boost", 10240};
+  managed_shared_memory managed_shm{open_or_create, "shared_memory_tf", 10240};
   std::cout << "Created managed_shared_memory object." << std::endl;
 
   std::pair<TransformationBuffer*, std::size_t> p_ = managed_shm.find<TransformationBuffer>(object_name);
