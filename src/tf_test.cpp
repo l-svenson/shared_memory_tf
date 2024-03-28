@@ -13,7 +13,9 @@ void inthand(int signum)
 
 using namespace boost::interprocess;
 
-#define object_name "foo"
+#define SHM_SEGMENT_NAME "shared_memory_tf"
+#define FRAME_ID "base_link"
+#define PARENT_FRAME_ID "map"
 
 int main(int argc, char** argv)
 {
@@ -21,21 +23,24 @@ int main(int argc, char** argv)
 
   if (argc > 1)
   {
-    shared_memory_object::remove("Boost");
+    shared_memory_object::remove(SHM_SEGMENT_NAME);
   }
 
-  managed_shared_memory managed_shm{open_or_create, "shared_memory_tf", 10240};
+  managed_shared_memory managed_shm{open_or_create, SHM_SEGMENT_NAME, 10240};
   std::cout << "Created managed_shared_memory object." << std::endl;
 
-  std::pair<TransformationBuffer*, std::size_t> p_ = managed_shm.find<TransformationBuffer>(object_name);
+  // An allocator convertible to any allocator<T, segment_manager_t> type
+  void_allocator alloc_inst(managed_shm.get_segment_manager());
+
+  std::pair<TransformationBuffer*, std::size_t> p_ = managed_shm.find<TransformationBuffer>(FRAME_ID);
   if (p_.first)
   {
-    std::cout << "I found '" << object_name << "' already!" << std::endl;
+    std::cout << "I found '" << FRAME_ID << "' already!" << std::endl;
   }
   else
   {
-    std::cout << "Could not find '" << object_name << "' yet... I will create it now!" << std::endl;
-    managed_shm.construct<TransformationBuffer>(object_name)();
+    std::cout << "Could not find '" << FRAME_ID << "' yet... I will create it now!" << std::endl;
+    managed_shm.construct<TransformationBuffer>(FRAME_ID)("foo", alloc_inst);
   }
 
   std::cout << "# objects = " << managed_shm.get_segment_manager()->get_num_named_objects() << std::endl;
@@ -47,11 +52,13 @@ int main(int argc, char** argv)
     for (auto it = managed_shm.named_begin(); it != managed_shm.named_end(); ++it)
     {
       std::string_view name(it->name(), it->name_length());
-      std::cout << "Item `" << name << "`:" << std::endl;
+      std::cout << "frame_id `" << name << "`:" << std::endl;
 
       std::pair<TransformationBuffer*, std::size_t> p = managed_shm.find<TransformationBuffer>(it->name());
       if (p.first)
       {
+        std::cout << "  parent: `" << p.first->parent_frame_id << "`" << std::endl;
+
         Transformation trafo = p.first->transformations[p.first->current_index];
 
         trafo.stamp_nanosec = std::chrono::high_resolution_clock::now().time_since_epoch().count();
