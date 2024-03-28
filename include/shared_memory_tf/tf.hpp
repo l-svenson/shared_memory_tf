@@ -8,6 +8,9 @@
 #include <iostream>
 #include <thread>
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 using namespace boost::interprocess;
 
 // Typedefs
@@ -22,9 +25,9 @@ struct Vector3
   double t_y{0.0};
   double t_z{0.0};
 
-  double* data()
+  Eigen::Map<const Eigen::Vector3d> eigenVector() const
   {
-    return &t_x;
+    return Eigen::Map<const Eigen::Vector3d>(&t_x);
   }
 };
 
@@ -35,9 +38,9 @@ struct Quaternion
   double q_z{0.0};
   double q_w{1.0};
 
-  double* data()
+  Eigen::Map<const Eigen::Quaterniond> eigenQuaternion() const
   {
-    return &q_x;
+    return Eigen::Map<const Eigen::Quaterniond>(&q_x);
   }
 };
 
