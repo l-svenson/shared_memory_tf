@@ -1,9 +1,20 @@
 #pragma once
 
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
+
 #include <ctime>
 #include <iostream>
 #include <thread>
+
+using namespace boost::interprocess;
+
+// Typedefs
+typedef managed_shared_memory::segment_manager segment_manager_t;
+typedef allocator<void, segment_manager_t> void_allocator;
+typedef allocator<char, managed_shared_memory::segment_manager> CharAllocator;
+typedef basic_string<char, std::char_traits<char>, CharAllocator> ShmString;
 
 struct Vector3
 {
@@ -40,9 +51,16 @@ struct Transformation
 
 struct TransformationBuffer
 {
+  TransformationBuffer(const char* parent_frame_id, const void_allocator& void_alloc)
+      : parent_frame_id(parent_frame_id, void_alloc)
+  {
+  }
+
   static constexpr std::size_t LENGTH = 10;
   Transformation transformations[LENGTH];
   std::size_t current_index{0};
+
+  const ShmString parent_frame_id;
 
   void addTransformation(Transformation trafo)
   {
