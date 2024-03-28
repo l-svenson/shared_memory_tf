@@ -66,7 +66,7 @@ struct TransformationBuffer
   {
     boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(mutex_);
 
-    std::cout << "current_index=" << current_index << std::endl;
+    std::cout << "  current_index=" << current_index << std::endl;
 
     transformations[current_index] = trafo;
 
