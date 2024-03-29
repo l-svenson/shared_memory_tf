@@ -29,22 +29,6 @@ int main(int argc, char** argv)
   managed_shared_memory managed_shm{open_or_create, SHM_SEGMENT_NAME, 10240};
   std::cout << "Created managed_shared_memory object." << std::endl;
 
-  // An allocator convertible to any allocator<T, segment_manager_t> type
-  void_allocator alloc_inst(managed_shm.get_segment_manager());
-
-  std::pair<TransformationBuffer*, std::size_t> p_ = managed_shm.find<TransformationBuffer>(FRAME_ID);
-  if (p_.first)
-  {
-    std::cout << "I found '" << FRAME_ID << "' already!" << std::endl;
-  }
-  else
-  {
-    std::cout << "Could not find '" << FRAME_ID << "' yet... I will create it now!" << std::endl;
-    managed_shm.construct<TransformationBuffer>(FRAME_ID)("foo", alloc_inst);
-  }
-
-  std::cout << "# objects = " << managed_shm.get_segment_manager()->get_num_named_objects() << std::endl;
-
   signal(SIGINT, inthand);
 
   while (!stop)
@@ -62,13 +46,11 @@ int main(int argc, char** argv)
         Transformation trafo = p.first->transformations[p.first->current_index];
 
         trafo.stamp_nanosec = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        trafo.translation.t_x += std::rand() / ((RAND_MAX + 1U) / 10);
-        trafo.translation.t_y += std::rand() / ((RAND_MAX + 1U) / 10);
-        trafo.translation.t_z += std::rand() / ((RAND_MAX + 1U) / 10);
+        trafo.translation.x += std::rand() / ((RAND_MAX + 1U) / 10);
+        trafo.translation.y += std::rand() / ((RAND_MAX + 1U) / 10);
+        trafo.translation.z += std::rand() / ((RAND_MAX + 1U) / 10);
 
         trafo.rotation.q_x += 1;
-
-        p.first->addTransformation(trafo);
 
         Transformation* array = p.first->transformations;
 
@@ -76,9 +58,26 @@ int main(int argc, char** argv)
         {
           std::cout << "  element [" << i << "]=" << array[i] << std::endl;
         }
+
+        const auto req_stamp =
+            (std::chrono::high_resolution_clock::now() - std::chrono::milliseconds(200)).time_since_epoch().count();
+        std::optional<Eigen::Isometry3d> H = p.first->getTransformation(req_stamp);
+
+        std::cout << "stamp=" << req_stamp << std::endl;
+
+        if (H)
+        {
+          std::cout << "H = " << std::endl << H->matrix() << std::endl;
+        }
+        else
+        {
+          std::cout << "Could not interpolate to the given stamp...." << std::endl;
+        }
       }
     }
 
     std::cout << "=========================" << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 }

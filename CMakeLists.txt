@@ -28,24 +28,40 @@ include_directories(
   SYSTEM include
 )
 
-add_executable(tf_test
-  src/tf_test.cpp
+add_executable(tf_writer
+  src/tf_writer.cpp
 )
-target_include_directories(tf_test PUBLIC
+target_include_directories(tf_writer PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   eigen3
 )
-target_link_libraries(tf_test
+target_link_libraries(tf_writer
   Eigen3::Eigen
 )
-ament_target_dependencies(tf_test
+ament_target_dependencies(tf_writer
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+add_executable(tf_reader
+  src/tf_reader.cpp
+)
+target_include_directories(tf_reader PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  eigen3
+)
+target_link_libraries(tf_reader
+  Eigen3::Eigen
+)
+ament_target_dependencies(tf_reader
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 # Install all C++ targets
 install(TARGETS
-  tf_test
+  tf_writer
+  tf_reader
   DESTINATION lib/${PROJECT_NAME})
 
 # Install include files
