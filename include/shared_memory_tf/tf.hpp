@@ -154,9 +154,9 @@ private:
 };
 
 // Define the streaming operator for Transformation
-std::ostream& operator<<(std::ostream& os, const Transformation& Transformation)
+std::ostream& operator<<(std::ostream& os, const Transformation& trafo)
 {
-  os << "stamp=" << Transformation.stamp_nanosec << ", translation=(" << Transformation.translation.eigenVector().transpose()
-     << "), rotation=(" << Transformation.rotation.eigenQuaternion() << ")";
+  os << "stamp=" << trafo.stamp_nanosec << ", translation=(" << trafo.translation.eigenVector().transpose() << "), rotation=("
+     << trafo.rotation.eigenQuaternion() << ")";
   return os;
 }
