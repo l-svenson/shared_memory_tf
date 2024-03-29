@@ -97,8 +97,60 @@ struct TransformationBuffer
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
+  std::optional<Eigen::Isometry3d> getTransformation(uint64_t stamp) const
+  {
+    boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(mutex_);
+
+    std::optional<Transformation> prev_trafo;
+    std::optional<Transformation> next_trafo;
+
+    for (std::size_t i = 0; i < LENGTH; i++)
+    {
+      const Transformation& trafo = transformations[i];
+      if (trafo.stamp_nanosec > 0)
+      {
+        if (trafo.stamp_nanosec == stamp)
+        {
+          return trafo.eigenTransformation();
+        }
+        else if (trafo.stamp_nanosec < stamp)
+        {
+          prev_trafo = trafo;
+          std::cout << "prev_trafo @ index " << i << std::endl;
+        }
+        else if (trafo.stamp_nanosec > stamp)
+        {
+          next_trafo = trafo;
+          std::cout << "next_trafo @ index " << i << std::endl;
+        }
+      }
+
+      // If the requested stamp lies between two existing transformation, interpolate!
+      if (prev_trafo && next_trafo)
+      {
+        // Scaling factor between the previous and the next transformation
+        // t = 0.0 => use 100% prev_trafo
+        // t = 1.0 => use 100% next_trafo
+        const double t = (stamp - prev_trafo->stamp_nanosec) / (next_trafo->stamp_nanosec - prev_trafo->stamp_nanosec);
+        const double factor_prev = 1.0 - t;
+        const double factor_next = t;
+
+        const Eigen::Vector3d interpolated_translation =
+            factor_prev * prev_trafo->translation.eigenVector() + factor_next * next_trafo->translation.eigenVector();
+
+        const Eigen::Quaterniond interpolated_rotation =
+            prev_trafo->rotation.eigenQuaternion().slerp(factor_prev, next_trafo->rotation.eigenQuaternion());
+
+        return Eigen::Translation3d(interpolated_translation) * Eigen::Isometry3d(interpolated_rotation);
+      }
+    }
+
+    // Fallback: Not found
+    return {};
+  }
+
 private:
-  boost::interprocess::interprocess_mutex mutex_;
+  mutable boost::interprocess::interprocess_mutex mutex_;
 };
 
 // Define the streaming operator for Transformation
