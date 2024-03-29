@@ -59,6 +59,11 @@ struct Transformation
 
   Vector3 translation;
   Quaternion rotation;
+
+  Eigen::Isometry3d eigenTransformation() const
+  {
+    return Eigen::Translation3d(translation.x, translation.y, translation.z) * Eigen::Isometry3d(rotation.eigenQuaternion());
+  }
 };
 
 struct TransformationBuffer
