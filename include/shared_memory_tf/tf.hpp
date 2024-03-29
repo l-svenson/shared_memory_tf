@@ -38,6 +38,15 @@ struct Quaternion
   double q_z{0.0};
   double q_w{1.0};
 
+  void normalize()
+  {
+    Eigen::Quaterniond normalized_quat = this->eigenQuaternion().normalized();
+    this->q_x = normalized_quat.x();
+    this->q_y = normalized_quat.y();
+    this->q_z = normalized_quat.z();
+    this->q_w = normalized_quat.w();
+  }
+
   Eigen::Map<const Eigen::Quaterniond> eigenQuaternion() const
   {
     return Eigen::Map<const Eigen::Quaterniond>(&q_x);
