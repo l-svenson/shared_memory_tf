@@ -21,13 +21,13 @@ typedef basic_string<char, std::char_traits<char>, CharAllocator> ShmString;
 
 struct Vector3
 {
-  double t_x{0.0};
-  double t_y{0.0};
-  double t_z{0.0};
+  double x{0.0};
+  double y{0.0};
+  double z{0.0};
 
   Eigen::Map<const Eigen::Vector3d> eigenVector() const
   {
-    return Eigen::Map<const Eigen::Vector3d>(&t_x);
+    return Eigen::Map<const Eigen::Vector3d>(&x);
   }
 };
 
