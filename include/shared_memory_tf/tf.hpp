@@ -85,6 +85,9 @@ struct TransformationBuffer
 
     std::cout << "  current_index=" << current_index << std::endl;
 
+    // TODO: Insert the new trafo at the correct position (in case of out-of-sequence added transformations)
+    // TODO: Overwrite in case of adding a new transformation with an existing timestamp (update!)
+
     transformations[current_index] = trafo;
 
     current_index++;
