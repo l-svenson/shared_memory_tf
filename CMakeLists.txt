@@ -15,6 +15,7 @@ find_package(Eigen3 REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(Catch2 REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
     ament_index_cpp
@@ -58,10 +59,27 @@ ament_target_dependencies(tf_reader
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
+add_executable(tf_test
+  tests/tf_test.cpp
+)
+target_include_directories(tf_test PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  eigen3
+)
+target_link_libraries(tf_test
+  Eigen3::Eigen
+  Catch2::Catch2
+)
+ament_target_dependencies(tf_test
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
 # Install all C++ targets
 install(TARGETS
   tf_writer
   tf_reader
+  tf_test
   DESTINATION lib/${PROJECT_NAME})
 
 # Install include files
@@ -69,5 +87,9 @@ install(
   DIRECTORY include/
   DESTINATION include
 )
+
+include(CTest)
+include(Catch)
+catch_discover_tests(tf_test)
 
 ament_package()
