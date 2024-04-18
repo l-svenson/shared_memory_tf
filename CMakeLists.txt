@@ -29,36 +29,6 @@ include_directories(
   SYSTEM include
 )
 
-add_executable(tf_writer
-  src/tf_writer.cpp
-)
-target_include_directories(tf_writer PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  eigen3
-)
-target_link_libraries(tf_writer
-  Eigen3::Eigen
-)
-ament_target_dependencies(tf_writer
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
-add_executable(tf_reader
-  src/tf_reader.cpp
-)
-target_include_directories(tf_reader PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  eigen3
-)
-target_link_libraries(tf_reader
-  Eigen3::Eigen
-)
-ament_target_dependencies(tf_reader
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
 add_executable(tf_test
   tests/tf_test.cpp
 )
@@ -72,21 +42,6 @@ target_link_libraries(tf_test
   Catch2::Catch2
 )
 ament_target_dependencies(tf_test
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
-add_executable(tf_tester
-  src/tf_tester.cpp
-)
-target_include_directories(tf_tester PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  eigen3
-)
-target_link_libraries(tf_tester
-  Eigen3::Eigen
-)
-ament_target_dependencies(tf_tester
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
@@ -107,10 +62,7 @@ ament_target_dependencies(tf_resetter
 
 # Install all C++ targets
 install(TARGETS
-  tf_writer
-  tf_reader
   tf_test
-  tf_tester
   tf_resetter
   DESTINATION lib/${PROJECT_NAME})
 

@@ -62,26 +62,14 @@ public:
     std::vector<std::string> parent_frame_ancestors = getAncestors(parent_frame_id);
     std::string mutual_ancestor;
 
-    std::cout << "ancestors of " << parent_frame_id << " are : " << std::endl;
-    for (auto& frame : parent_frame_ancestors)
-    {
-      std::cout << frame << std::endl;
-    }
-
-    std::cout << "ancestors of " << frame_id << " are : " << std::endl;
-    for (auto& frame : frame_ancestors)
-    {
-      std::cout << frame << std::endl;
-    }
-
     for (const auto& frame_ancestor : frame_ancestors)
     {
       for (const auto& parent_frame_ancestor : parent_frame_ancestors)
       {
         if (frame_ancestor == parent_frame_ancestor)
-        { // Found mutual ancestor
+        {
+          // Found mutual ancestor
           mutual_ancestor = frame_ancestor;
-          std::cout << "Found mutual ancestor: " << mutual_ancestor << std::endl;
         }
       }
     }
@@ -92,7 +80,6 @@ public:
     }
 
     // Get Tranformations from buffers
-    std::vector<std::string> trafo_chain;
     Eigen::Isometry3d trafo = Eigen::Isometry3d::Identity();
 
     for (auto it = parent_frame_ancestors.rbegin(); it != parent_frame_ancestors.rend(); it++)
@@ -102,8 +89,6 @@ public:
       {
         break;
       }
-      trafo_chain.push_back(parent_frame_ancestor);
-      std::cout << "Adding frame " << parent_frame_ancestor << " to trafo_chain" << std::endl;
       auto cur_trafo =
           managed_shm.find<TransformationBuffer>(parent_frame_ancestor.c_str()).first->getTransformation(stamp_nanosec);
       if (cur_trafo)
@@ -115,8 +100,6 @@ public:
         return {};
       }
     }
-    trafo_chain.push_back(mutual_ancestor);
-    std::cout << "Adding frame " << mutual_ancestor << " to trafo_chain" << std::endl;
     bool passed_mutual = false;
     for (auto& frame_ancestor : frame_ancestors)
     {
@@ -125,8 +108,6 @@ public:
         passed_mutual = (frame_ancestor == mutual_ancestor);
         continue;
       }
-      trafo_chain.push_back(frame_ancestor);
-      std::cout << "Adding frame " << frame_ancestor << " to trafo_chain" << std::endl;
       auto cur_trafo = managed_shm.find<TransformationBuffer>(frame_ancestor.c_str()).first->getTransformation(stamp_nanosec);
       if (cur_trafo.has_value())
       {
@@ -137,12 +118,6 @@ public:
         // Tranformation not found for this timestamp
         return {};
       }
-    }
-
-    std::cout << "trafo chain is: " << std::endl;
-    for (const auto& elem : trafo_chain)
-    {
-      std::cout << elem << std::endl;
     }
 
     return trafo;
