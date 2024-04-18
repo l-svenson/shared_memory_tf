@@ -31,14 +31,14 @@ public:
     {
       std::cout << "Could not find '" << frame_id << "' yet... I will create it now!" << std::endl;
       managed_shm.construct<TransformationBuffer>(frame_id.c_str())(parent_frame_id.c_str(), alloc_inst);
+      p = managed_shm.find<TransformationBuffer>(frame_id.c_str());
     }
-
-    p = managed_shm.find<TransformationBuffer>(frame_id.c_str());
-    if ((p.first->parent_frame_id.c_str() != parent_frame_id.c_str()))
+    else if ((p.first->parent_frame_id.c_str() != parent_frame_id.c_str()))
     {
       std::cout << "error! Parent frame id not matching!" << std::endl;
       std::terminate();
     }
+
     Transformation trafo;
 
     trafo.stamp_nanosec = stamp_nanosec;
@@ -61,6 +61,18 @@ public:
     std::vector<std::string> parent_frame_ancestors = getAncestors(parent_frame_id);
     std::string mutual_ancestor;
 
+    std::cout << "ancestors of " << parent_frame_id << " are : " << std::endl;
+    for (auto& frame : parent_frame_ancestors)
+    {
+      std::cout << frame << std::endl;
+    }
+
+    std::cout << "ancestors of " << frame_id << " are : " << std::endl;
+    for (auto& frame : frame_ancestors)
+    {
+      std::cout << frame << std::endl;
+    }
+
     for (const auto& frame_ancestor : frame_ancestors)
     {
       for (const auto& parent_frame_ancestor : parent_frame_ancestors)
@@ -68,6 +80,7 @@ public:
         if (frame_ancestor == parent_frame_ancestor)
         { // Found mutual ancestor
           mutual_ancestor = frame_ancestor;
+          std::cout << "Found mutual ancestor: " << mutual_ancestor << std::endl;
         }
       }
     }
@@ -80,25 +93,7 @@ public:
     // Get Tranformations from buffers
     std::vector<std::string> trafo_chain;
     Eigen::Isometry3d trafo = Eigen::Isometry3d::Identity();
-    for (const auto& frame_ancestor : frame_ancestors)
-    {
-      if (frame_ancestor == mutual_ancestor)
-      {
-        break;
-      }
-      trafo_chain.push_back(frame_ancestor);
-      auto cur_trafo = managed_shm.find<TransformationBuffer>(frame_ancestor.c_str()).first->getTransformation(stamp_nanosec);
-      if (cur_trafo)
-      {
-        trafo = trafo * cur_trafo.value();
-      }
-      else
-      {
-        // Tranformation not found for this timestamp
-        return {};
-      }
-    }
-    trafo_chain.push_back(mutual_ancestor);
+
     for (auto it = parent_frame_ancestors.rbegin(); it != parent_frame_ancestors.rend(); it++)
     {
       const auto& parent_frame_ancestor = *it;
@@ -107,6 +102,7 @@ public:
         break;
       }
       trafo_chain.push_back(parent_frame_ancestor);
+      std::cout << "Adding frame " << parent_frame_ancestor << " to trafo_chain" << std::endl;
       auto cur_trafo =
           managed_shm.find<TransformationBuffer>(parent_frame_ancestor.c_str()).first->getTransformation(stamp_nanosec);
       if (cur_trafo)
@@ -115,6 +111,29 @@ public:
       }
       else
       { // Tranformation not found for this timestamp
+        return {};
+      }
+    }
+    trafo_chain.push_back(mutual_ancestor);
+    std::cout << "Adding frame " << mutual_ancestor << " to trafo_chain" << std::endl;
+    bool passed_mutual = false;
+    for (auto& frame_ancestor : frame_ancestors)
+    {
+      if (!passed_mutual)
+      {
+        passed_mutual = (frame_ancestor == mutual_ancestor);
+        continue;
+      }
+      trafo_chain.push_back(frame_ancestor);
+      std::cout << "Adding frame " << frame_ancestor << " to trafo_chain" << std::endl;
+      auto cur_trafo = managed_shm.find<TransformationBuffer>(frame_ancestor.c_str()).first->getTransformation(stamp_nanosec);
+      if (cur_trafo.has_value())
+      {
+        trafo = trafo * cur_trafo.value();
+      }
+      else
+      {
+        // Tranformation not found for this timestamp
         return {};
       }
     }
