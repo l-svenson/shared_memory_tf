@@ -134,15 +134,16 @@ struct TransformationBuffer
         // Scaling factor between the previous and the next transformation
         // t = 0.0 => use 100% prev_trafo
         // t = 1.0 => use 100% next_trafo
-        const double t = (stamp - prev_trafo->stamp_nanosec) / (next_trafo->stamp_nanosec - prev_trafo->stamp_nanosec);
+        const double t =
+            double(stamp - prev_trafo->stamp_nanosec) / double(next_trafo->stamp_nanosec - prev_trafo->stamp_nanosec);
         const double factor_prev = 1.0 - t;
         const double factor_next = t;
 
-        const Eigen::Vector3d interpolated_translation =
-            factor_prev * prev_trafo->translation.eigenVector() + factor_next * next_trafo->translation.eigenVector();
+        const Eigen::Vector3d interpolated_translation(factor_prev * prev_trafo->translation.eigenVector() +
+                                                       factor_next * next_trafo->translation.eigenVector());
 
-        const Eigen::Quaterniond interpolated_rotation =
-            prev_trafo->rotation.eigenQuaternion().slerp(factor_prev, next_trafo->rotation.eigenQuaternion());
+        const Eigen::Quaterniond interpolated_rotation(
+            prev_trafo->rotation.eigenQuaternion().slerp(factor_prev, next_trafo->rotation.eigenQuaternion()));
 
         return Eigen::Translation3d(interpolated_translation) * Eigen::Isometry3d(interpolated_rotation);
       }

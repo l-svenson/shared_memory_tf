@@ -33,9 +33,10 @@ public:
       managed_shm.construct<TransformationBuffer>(frame_id.c_str())(parent_frame_id.c_str(), alloc_inst);
       p = managed_shm.find<TransformationBuffer>(frame_id.c_str());
     }
-    else if ((p.first->parent_frame_id.c_str() != parent_frame_id.c_str()))
+    else if ((std::string(p.first->parent_frame_id.c_str()) != parent_frame_id))
     {
-      std::cout << "error! Parent frame id not matching!" << std::endl;
+      std::cout << "error! Parent frame id not matching! parent_frame_id is: " << p.first->parent_frame_id.c_str() << " but "
+                << parent_frame_id.c_str() << " was expected!" << std::endl;
       std::terminate();
     }
 
