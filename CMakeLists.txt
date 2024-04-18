@@ -90,12 +90,28 @@ ament_target_dependencies(tf_tester
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
+add_executable(tf_resetter
+  src/tf_resetter.cpp
+)
+target_include_directories(tf_resetter PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  eigen3
+)
+target_link_libraries(tf_resetter
+  Eigen3::Eigen
+)
+ament_target_dependencies(tf_resetter
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
 # Install all C++ targets
 install(TARGETS
   tf_writer
   tf_reader
   tf_test
   tf_tester
+  tf_resetter
   DESTINATION lib/${PROJECT_NAME})
 
 # Install include files
