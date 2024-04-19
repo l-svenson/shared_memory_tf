@@ -41,11 +41,11 @@ TEST_CASE("Simple translation test_case")
   tf_manager.addTransform(1, "parent", "sibling", {0, 1, 1}, {1, 0, 0, 0});
   tf_manager.addTransform(1, "sibling", "nephew", {0, 0, 1}, {1, 0, 0, 0});
 
-  REQUIRE(transform_is(tf_manager.getTransform(1, "parent", "grandchild"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, 3))));
-  REQUIRE(transform_is(tf_manager.getTransform(1, "grandchild", "parent"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, -3))));
-  REQUIRE(transform_is(tf_manager.getTransform(1, "ego", "nephew"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 1))));
-  REQUIRE(transform_is(tf_manager.getTransform(1, "child", "nephew"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 0))));
-  REQUIRE(transform_is(tf_manager.getTransform(1, "grandparent", "nephew"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 3))));
+  REQUIRE(transform_is(tf_manager.getHTM(1, "grandchild", "parent"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, 3))));
+  REQUIRE(transform_is(tf_manager.getHTM(1, "parent", "grandchild"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, -3))));
+  REQUIRE(transform_is(tf_manager.getHTM(1, "nephew", "ego"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 1))));
+  REQUIRE(transform_is(tf_manager.getHTM(1, "nephew", "child"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 0))));
+  REQUIRE(transform_is(tf_manager.getHTM(1, "nephew", "grandparent"), Eigen::Isometry3d(Eigen::Translation3d(0, 1, 3))));
 }
 
 TEST_CASE("translation interpolation test_case")
@@ -55,5 +55,5 @@ TEST_CASE("translation interpolation test_case")
   tf_manager.addTransform(1, "grandparent", "parent", {0, 0, 1}, {1, 0, 0, 0});
   tf_manager.addTransform(3, "grandparent", "parent", {0, 0, 2}, {1, 0, 0, 0});
 
-  REQUIRE(transform_is(tf_manager.getTransform(2, "grandparent", "parent"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1.5))));
+  REQUIRE(transform_is(tf_manager.getHTM(2, "parent", "grandparent"), Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1.5))));
 }

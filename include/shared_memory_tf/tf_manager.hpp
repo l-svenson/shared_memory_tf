@@ -55,7 +55,7 @@ public:
   };
 
   std::optional<Eigen::Isometry3d>
-  getTransform(const uint64_t stamp_nanosec, const std::string& parent_frame_id, const std::string& frame_id)
+  getHTM(const uint64_t stamp_nanosec, const std::string& frame_id, const std::string& parent_frame_id)
   {
     // Find Transform Chain
     std::vector<std::string> frame_ancestors = getAncestors(frame_id);
