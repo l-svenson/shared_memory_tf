@@ -62,7 +62,8 @@ struct Transformation
 
   Eigen::Isometry3d eigenTransformation() const
   {
-    return Eigen::Translation3d(translation.x, translation.y, translation.z) * Eigen::Isometry3d(rotation.eigenQuaternion());
+    return Eigen::Isometry3d(rotation.eigenQuaternion().conjugate()) *
+           Eigen::Translation3d(translation.x, translation.y, translation.z);
   }
 };
 
@@ -145,7 +146,7 @@ struct TransformationBuffer
         const Eigen::Quaterniond interpolated_rotation(
             prev_trafo->rotation.eigenQuaternion().slerp(factor_prev, next_trafo->rotation.eigenQuaternion()));
 
-        return Eigen::Translation3d(interpolated_translation) * Eigen::Isometry3d(interpolated_rotation);
+        return Eigen::Isometry3d(interpolated_rotation.conjugate()) * Eigen::Translation3d(interpolated_translation);
       }
     }
 
